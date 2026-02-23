@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# 가상환경
+.venv/
+
+# 환경변수 (API 키, DB 비밀번호)
+.env
+
+# 데이터 파일 (VPS에서 스크립트 실행으로 생성)
+datas/
+
+# IDE / 에이전트 설정
+.agent/
+.agents/
+.gemini/
+.vscode/
+.idea/
+
+# Lock 파일 (uv sync로 재생성)
+uv.lock

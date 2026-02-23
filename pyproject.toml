@@ -1,0 +1,16 @@
+[project]
+name = "apt-data-collection-manipulation"
+version = "0.1.0"
+description = "서울/인천/경기 아파트 실거래가 및 네이버 매물 데이터 수집·가공·DB 적재 시스템"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "requests>=2.31.0",
+    "pandas>=2.2.0",
+    "xmltodict>=0.14.0",
+    "python-dotenv>=1.0.0",
+    "sqlalchemy>=2.0.0",
+    "psycopg2-binary>=2.9.0",
+    "python-dateutil>=2.9.0",
+    "curl-cffi>=0.14.0",
+]

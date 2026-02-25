@@ -7,6 +7,9 @@
 매개변수:
     --regions : 시도 코드 목록 (기본값: 11 28 41 = 서울, 인천, 경기)
     --months  : 수집 기간 (개월, 기본값: 36)
+    --skip-code : 단지 코드 수집 건너뛰기
+    --skip-basic : 기본/상세 정보 수집 건너뛰기
+    --skip-trade : 매매/전월세 수집 건너뛰기
 """
 
 import argparse
@@ -763,7 +766,7 @@ def process_trade_rent(trade_file, rent_file=None):
 # 메인 실행
 # ==============================================================================
 
-def main(regions, months_back):
+def main(regions, months_back, skip_code=False, skip_basic=False, skip_trade=False):
     """전체 수집 및 가공 파이프라인을 실행합니다."""
     print("=" * 60)
     print(f"아파트 데이터 수집 및 가공 시작")
@@ -771,17 +774,39 @@ def main(regions, months_back):
     print(f"  수집 기간: 최근 {months_back}개월")
     print("=" * 60)
 
+    today_str = get_today_str()
+    # 기본 파일명 설정
+    code_file = os.path.join(DATA_DIR, f"apt_code_{today_str}.csv")
+    basic_info_file = os.path.join(DATA_DIR, f"apt_basic_info_{today_str}.csv")
+    detail_info_file = os.path.join(DATA_DIR, f"apt_detail_info_{today_str}.csv")
+    trade_file = os.path.join(DATA_DIR, f"apt_trade_{today_str}.csv")
+    rent_file = os.path.join(DATA_DIR, f"apt_rent_{today_str}.csv")
+
     # Step 1: 단지 코드 수집
-    print("\n[Step 1/4] 단지 코드 수집")
-    code_file = collect_apt_codes(regions)
+    if not skip_code:
+        print("\n[Step 1/4] 단지 코드 수집")
+        code_file_res = collect_apt_codes(regions)
+        if code_file_res: code_file = code_file_res
+    else:
+        print("\n[Step 1/4] 단지 코드 수집 건너뜀")
 
     # Step 2: 기본/상세 정보 수집
-    print("\n[Step 2/4] 기본/상세 정보 수집")
-    basic_info_file, detail_info_file = collect_all_info(code_file)
+    if not skip_basic:
+        print("\n[Step 2/4] 기본/상세 정보 수집")
+        res = collect_all_info(code_file)
+        if res and len(res) == 2:
+            basic_info_file, detail_info_file = res
+    else:
+        print("\n[Step 2/4] 기본/상세 정보 수집 건너뜀")
 
     # Step 3: 매매/전월세 데이터 수집
-    print("\n[Step 3/4] 매매/전월세 거래 데이터 수집")
-    trade_file, rent_file = collect_all_trade_rent(code_file, months_back)
+    if not skip_trade:
+        print("\n[Step 3/4] 매매/전월세 거래 데이터 수집")
+        res = collect_all_trade_rent(code_file, months_back)
+        if res and len(res) == 2:
+            trade_file, rent_file = res
+    else:
+        print("\n[Step 3/4] 매매/전월세 거래 데이터 수집 건너뜀")
 
     # Step 4: 데이터 가공
     print("\n[Step 4/4] 데이터 가공")
@@ -801,5 +826,9 @@ if __name__ == "__main__":
                         help='시도 코드 목록 (기본값: 11 28 41 = 서울, 인천, 경기)')
     parser.add_argument('--months', type=int, default=36,
                         help='수집 기간(개월) (기본값: 36)')
+    parser.add_argument('--skip-code', action='store_true', help='단지 코드 수집 건너뛰기')
+    parser.add_argument('--skip-basic', action='store_true', help='기본/상세 정보(K-Apt) 수집 건너뛰기')
+    parser.add_argument('--skip-trade', action='store_true', help='매매/전월세 수집 건너뛰기')
+    
     args = parser.parse_args()
-    main(args.regions, args.months)
+    main(args.regions, args.months, args.skip_code, args.skip_basic, args.skip_trade)

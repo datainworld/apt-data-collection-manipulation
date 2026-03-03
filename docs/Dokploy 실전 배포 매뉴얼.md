@@ -145,3 +145,98 @@
 
 ✅ **완료!** 
 이제 GitHub에 코드를 푸시하면 새로운 수집 스크립트가 배포되며, 볼륨 마운트를 통해 데이터 유실 없이 매일 설정된 시간에 안전하게 자동 수집 시스템이 돌아가는 최적의 아키텍처가 완성되었습니다.
+
+---
+
+## 7. 스케줄러 및 백그라운드 작업 실행 상태 확인 방법
+
+예약된 스케줄러(Dokploy Scheduled Jobs 혹은 crontab)를 통해 데이터 수집이 정상적으로 실행 중인지 확인하는 방법은 크게 4가지가 있습니다.
+
+### 1. Dokploy 대시보드에서 시스템 로그 확인 (가장 권장됨)
+Dokploy 웹 화면에서 실행 상태와 실제 출력 로그를 바로 확인할 수 있습니다.
+* **확인 경로:** Dokploy 대시보드 접속 ➔ Project ➔ APT ➔ **Schedules** ➔ Schedule Tasks 아이콘
+* **방법:** 등록된 스케줄 항목(예: `Daily_Apt_Update`)의 **Status/Logs** 탭을 클릭하여 현재 스크립트 출력 로그(진행률 등)를 실시간으로 확인합니다. **Last Run**(마지막 실행 시간)도 함께 체크하여 스케줄러가 정상 동작했는지 확인합니다.
+
+### 2. 서버 SSH 접속하여 프로세스(Process) 확인
+서버 백그라운드 환경에서 스크립트가 온전히 돌아가고 있는지 직접 검사하는 방식입니다.
+* **확인 방법:** VPS 서버에 SSH 접속 후 Docker 컨테이너 내의 파이썬 프로세스를 검색합니다.
+```bash
+# 1. 컨테이너 ID 확인 (apt-data-collect... 등)
+docker ps
+
+# 2. 실행 중인 컨테이너 내부의 python 프로세스 검색
+docker exec -it <컨테이너ID> ps -ef | grep python
+```
+* **정상 상태:** 결과 목록에 `/usr/bin/python3 /app/update_and_migrate.py` 혹은 `/app/collect_naver_listing.py` 등의 프로세스가 보인다면 수집이 정상적으로 실행 중인 것입니다.
+
+### 3. 데이터 파일(CSV) 갱신 시간 확인
+데이터 통합 및 적재 과정에서 저장소 파일이 갱신되는지 확인합니다.
+* **확인 방법:** 서버 내 호스트 볼륨으로 마운트한 폴더(예: `/var/lib/dokploy/apt-datas`)를 조회합니다.
+```bash
+ls -l /var/lib/dokploy/apt-datas
+```
+* **정상 상태:** 디렉토리 내 마스터 파일(`apt_trade_master_*.csv` 등)이나 임시 작업 파일의 **수정 시간(날짜/시간)** 이 스크줄러가 실행된 시점과 가깝게 맞물려 기록되어 있다면 데이터 쓰기가 진행 중이거나 완료된 것입니다.
+
+### 4. DB (PostgreSQL) 최신 데이터 등록 여부 확인
+수집 처리가 모두 끝난 후 최종적으로 데이터 마이그레이션이 잘 반영되었는지 확인하는 확실한 방법입니다.
+* **확인 방법:** DBeaver, pgAdmin 등 외부 클라이언트나 쿼리 툴을 이용해 DB에 접속한 뒤 아래 쿼리를 수행합니다.
+```sql
+-- 실거래 매매 데이터 최신 날짜 확인
+SELECT MAX(deal_date) FROM apt_trade;
+
+-- 네이버 부동산 호가 데이터 최신 반영일 확인
+SELECT MAX(last_seen_date) FROM naver_listing;
+```
+* **정상 상태:** 최신 날짜 데이터가 조회된다면(어제 혹은 실시간 수집 내역) 스케줄러가 무사히 데이터를 수집하고 적재까지 완료한 것을 의미합니다.
+
+---
+
+## 8. 외부/로컬 PC에서 DB (PostgreSQL) 안전하게 접속하는 방법
+
+보안(해킹 방지)을 위해 클라우드 방화벽(Hostinger Firewall)에서 데이터베이스 포트(5432)를 전면 개방하는 것(`0.0.0.0/0`)은 매우 위험합니다. 따라서 가장 안전하고 모범적인 실무 방식인 **SSH 포트 포워딩(터널링)**을 통해 내 PC의 로컬 툴(pgAdmin, DBeaver 등)에서 접속하는 방법을 안내합니다.
+
+### 8.1 PowerShell에서 SSH 터널(비밀 통로) 뚫기
+
+윈도우 환경에서 가장 안정적으로 포트를 연결하는 방법입니다.
+
+1. PC에서 **Windows PowerShell**을 실행합니다.
+2. 아래 명령어를 입력하여 터널을 뚫습니다. (자신의 VPS IP 사용)
+   ```powershell
+   ssh -L 5432:localhost:5432 root@76.13.246.35
+   ```
+   > **의미:** "내 PC의 5432 포트 ➔ SSH 암호화 ➔ VPS 서버 접속 ➔ 서버 내부의 5432(DB) 포트" 로 강제로 길을 뚫어줍니다.
+3. `password:` 입력 란에 윈도우 비밀번호가 아닌 **Hostinger VPS의 root 계정 비밀번호**를 입력하고 엔터를 칩니다.
+4. 접속에 성공하여 리눅스 터미널(`root@srv...:~#`)이 나타나면, **이 검은 창을 절대 닫지 말고 백그라운드에 그대로 켜둡니다.** (이 창이 유지되는 동안에만 터널이 열려 있습니다.)
+
+### 8.2 pgAdmin 등 쿼리 툴에서 접속하기
+
+터널이 유지된 상태에서는 내 PC가 곧 서버인 것처럼 행동할 수 있습니다. 이미 뚫어놓은 터널을 통해 DB로 직행합니다.
+
+1. **pgAdmin** 또는 DBeaver를 엽니다.
+2. 새 서버(Connection) 추가/등록 메뉴로 들어갑니다.
+3. **[General] 탭**: 서버 이름을 알아보기 쉽게 적어줍니다. (예: `Hostinger APT DB (터널링)`)
+4. **[Connection] 탭**을 아래와 같이 **자신(localhost)**을 향하게 세팅합니다.
+   * **Host name/address:** `localhost` (또는 `127.0.0.1`)
+   * **Port:** `5432`
+   * **Maintenance database:** `postgres`
+   * **Username:** `postgres`
+   * **Password:** Dokploy에서 설정했던 DB의 비밀번호 (예: `4444`)
+5. **[SSH Tunnel] 탭**:
+   * 내장 SSH 터널 기능은 오류가 잦으므로 **항상 끄기(비활성화)**를 권장합니다. 앞서 PowerShell이 이 역할을 완벽하게 대신하고 있습니다.
+6. **[Save]** 를 눌러 연결합니다! 대기 시간 없이 즉시 연결됩니다.
+
+### 8.3 데이터 테이블 확인 방법
+
+접속 후, 우리가 스크립트로 밀어 넣었던 테이블 내용을 확인하려면 트리 메뉴를 아래 순서대로 펼칩니다.
+
+1. `Servers` ➔ 내가 만든 서버명 ➔ `Databases` ➔ `postgres` ➔ `Schemas` ➔ `public` ➔ `Tables`
+2. 생성된 `apt_basic`, `apt_detail`, `apt_trade`, `apt_rent` 등 확인.
+3. 엑셀처럼 표로 보려면 테이블에서 마우스 우클릭 ➔ **View/Edit Data** ➔ **First 100 Rows** 클릭.
+4. 직접 쿼리(SQL)를 쳐서 확인하려면 해당 DB 우클릭 ➔ **Query Tool**을 연 뒤 아래처럼 입력하고 실행(F5)합니다.
+   ```sql
+   -- 매매 데이터 총 보유 건수
+   SELECT COUNT(*) FROM apt_trade;
+   
+   -- 아파트 기본 정보 및 위치 샘플 10개 조회
+   SELECT apt_name, road_address, latitude, admin_dong FROM apt_basic LIMIT 10;
+   ```

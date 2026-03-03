@@ -298,7 +298,8 @@ def convert_to_detail_schema(df_basic_infos, df_detail_infos):
     df_k = pd.merge(df_kb, df_kd[cols_to_use], on='kaptCode', how='inner')
 
     if 'kaptdPcnt' in df_k.columns and 'kaptdPcntu' in df_k.columns:
-        df_k['total_parking'] = df_k['kaptdPcnt'].fillna(0) + df_k['kaptdPcntu'].fillna(0)
+        df_k['total_parking'] = pd.to_numeric(df_k['kaptdPcnt'], errors='coerce').fillna(0) + \
+                                pd.to_numeric(df_k['kaptdPcntu'], errors='coerce').fillna(0)
     else:
         df_k['total_parking'] = 0
 

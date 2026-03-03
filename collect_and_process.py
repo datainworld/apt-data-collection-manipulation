@@ -543,7 +543,8 @@ def process_detail_info(df_basic, basic_info_file, detail_info_file):
 
     # 총 주차수 계산
     if 'kaptdPcnt' in df_k.columns and 'kaptdPcntu' in df_k.columns:
-        df_k['total_parking'] = df_k['kaptdPcnt'].fillna(0) + df_k['kaptdPcntu'].fillna(0)
+        df_k['total_parking'] = pd.to_numeric(df_k['kaptdPcnt'], errors='coerce').fillna(0) + \
+                                pd.to_numeric(df_k['kaptdPcntu'], errors='coerce').fillna(0)
     else:
         df_k['total_parking'] = 0
 

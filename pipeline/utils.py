@@ -23,7 +23,7 @@ load_dotenv()
 
 DATA_API_KEY = os.getenv("DATA_API_KEY")
 KAKAO_API_KEY = os.getenv("KAKAO_API_KEY")
-DATA_DIR = "datas"
+DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "datas")
 
 # PostgreSQL 설정
 DB_USER = os.getenv("POSTGRES_USER", "postgres")

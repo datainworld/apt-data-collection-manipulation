@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APT Insight Platform</title>
+    <!-- 폰트 적용 (Pretendard) -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- 아이콘 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- 사이드바 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fa-solid fa-building"></i> APT Insight</h2>
+            </div>
+            
+            <div class="sidebar-content">
+                <button id="btn-new-chat" class="btn-primary">
+                    <i class="fa-solid fa-plus"></i> 새 분석 시작
+                </button>
+                
+                <div class="news-section">
+                    <h3>오늘의 뉴스 인사이트</h3>
+                    <div id="news-loading" class="hidden">
+                        <i class="fa-solid fa-spinner fa-spin"></i> 분석 중...
+                    </div>
+                    <div id="news-content" class="news-card">
+                        <p class="placeholder-text">새로고침 시 AI가 오늘의 뉴스를 분석하여 알려줍니다.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-footer">
+                <button id="theme-toggle" class="btn-icon">
+                    <i class="fa-solid fa-sun"></i> <span>라이트 모드</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- 메인 채팅 영역 -->
+        <main class="chat-area">
+            <div class="chat-header">
+                <h1>부동산 AI 어시스턴트</h1>
+                <p>실거래가, 네이버 매물, 최신 뉴스를 기반으로 답변합니다.</p>
+            </div>
+            
+            <div id="chat-messages" class="chat-messages">
+                <!-- 웰컴 메시지 -->
+                <div class="message system-message">
+                    <div class="message-avatar">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <p>안녕하세요! APT Insight 어시스턴트입니다.</p>
+                        <p>아파트 실거래가, 시세, 혹은 최근 부동산 뉴스에 대해 자유롭게 질문해 주세요.</p>
+                        <div class="suggestion-chips">
+                            <span class="chip">최근 강남구 거래 트렌드</span>
+                            <span class="chip">오늘 부동산 주요 뉴스 요약</span>
+                            <span class="chip">수도권 전세가율 높은 단지</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input-container">
+                <form id="chat-form">
+                    <div class="input-wrapper">
+                        <textarea id="chat-input" placeholder="질문을 입력하세요... (Shift+Enter로 줄바꿈)" rows="1"></textarea>
+                        <button type="submit" id="btn-send" class="btn-send">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>

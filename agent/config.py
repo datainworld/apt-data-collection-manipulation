@@ -6,7 +6,7 @@ import os
 from shared.config import OPENAI_API_KEY, GOOGLE_API_KEY
 
 # LLM 모델 설정
-DEFAULT_MODEL = os.getenv("AGENT_MODEL", "gemini-2.0-flash")
+DEFAULT_MODEL = os.getenv("AGENT_MODEL", "gemini-3-flash-preview")
 TEMPERATURE = float(os.getenv("AGENT_TEMPERATURE", "0"))
 
 # SQL 에이전트 설정

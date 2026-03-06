@@ -18,6 +18,8 @@ pipeline = [
     "xmltodict>=0.14.0",
     "python-dateutil>=2.9.0",
     "curl-cffi>=0.14.0",
+    "haversine>=2.9.0",
+    "thefuzz>=0.22.1",
 ]
 agent = [
     "langchain>=1.0.0",
@@ -25,6 +27,7 @@ agent = [
     "langchain-google-genai>=2.1.0",
     "langgraph>=1.0.0",
     "mcp>=1.0.0",
+    "langchain-mcp-adapters>=0.2.1",
 ]
 webapp = [
     "fastapi>=0.115.0",

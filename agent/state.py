@@ -18,3 +18,5 @@ class AgentState(TypedDict):
     query_result: str | None
     # 최종 응답 완료 여부
     is_complete: bool
+    # 뉴스 기반 컨텍스트 (NotebookLM Agent → Supervisor 전달용)
+    news_context: str | None
